@@ -14,21 +14,84 @@ datasource db {
 }
 
 model Users {
-  id String @id @default(uuid()) @db.Uuid
-  first_name String? 
-  last_name String?
-  age Int? 
-  role Role @default(USER)
-  email String @unique
-  passwordHash String @map("password_hash")
-  avatar String? 
-  created_at DateTime? @default(now())
-  updated_at DateTime? @updatedAt
+  id           String   @id @default(uuid()) @db.Uuid
+  first_name   String
+  last_name    String
+  age          Int?
+  role         Roles    @default(USER)
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  avatar       String?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 
   @@map("users")
 }
 
-enum Role {
+model WorkspaceMembers {
+  
+}
+
+model BoardMembers {
+
+}
+
+model Workspaces {
+  id         String   @id @default(uuid()) @db.Uuid
+  title      String
+  image      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  boards Boards[]
+
+  @@map("workspaces")
+}
+
+model Boards {
+  id         String   @id @default(uuid()) @db.Uuid
+  title      String
+  image      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  workspaceId String     @map("workspace_id") @db.Uuid
+  workspace   Workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  columns Columns[]
+
+  @@map("boards")
+}
+
+model Columns {
+  id         String   @id @default(uuid()) @db.Uuid
+  title      String
+  order Int @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  boardId String @map("board_id") @db.Uuid
+  board   Boards @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  cards Cards[]
+
+  @@map("columns")
+}
+
+model Cards {
+  id         String   @id @default(uuid()) @db.Uuid
+  title      String
+  order Int @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  columnId String  @map("column_id") @db.Uuid
+  column   Columns @relation(fields: [columnId], references: [id], onDelete: Cascade)
+
+  @@map("cards")
+}
+
+enum Roles {
   USER
   ADMIN
 }
