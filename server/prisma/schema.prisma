@@ -25,15 +25,40 @@ model Users {
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
 
+  workspaceMembers WorkspaceMembers[]
+  boardMembers     BoardMembers[]
+
   @@map("users")
 }
 
 model WorkspaceMembers {
-  
+  id         String   @id @default(uuid()) @db.Uuid
+  role       String   @default("MEMBER")
+  created_at DateTime @default(now())
+
+  userId String @map("user_id") @db.Uuid
+  user   Users  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workspaceId String     @map("workspace_id") @db.Uuid
+  workspace   Workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+  @@map("workspace_members")
 }
 
 model BoardMembers {
+  id         String   @id @default(uuid()) @db.Uuid
+  role       String   @default("MEMBER")
+  created_at DateTime @default(now())
 
+  userId String @map("user_id") @db.Uuid
+  user   Users  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  boardId String @map("board_id") @db.Uuid
+  board   Boards @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, boardId])
+  @@map("board_members")
 }
 
 model Workspaces {
@@ -43,7 +68,8 @@ model Workspaces {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  boards Boards[]
+  boards  Boards[]
+  members WorkspaceMembers[]
 
   @@map("workspaces")
 }
@@ -59,6 +85,7 @@ model Boards {
   workspace   Workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   columns Columns[]
+  members BoardMembers[]
 
   @@map("boards")
 }
@@ -66,7 +93,7 @@ model Boards {
 model Columns {
   id         String   @id @default(uuid()) @db.Uuid
   title      String
-  order Int @default(0)
+  order      Int      @default(0)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -81,7 +108,7 @@ model Columns {
 model Cards {
   id         String   @id @default(uuid()) @db.Uuid
   title      String
-  order Int @default(0)
+  order      Int      @default(0)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
