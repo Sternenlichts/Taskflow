@@ -27,6 +27,8 @@ model Users {
 
   workspaceMembers WorkspaceMembers[]
   boardMembers     BoardMembers[]
+  assignedCards    Cards[]            @relation("assignedTo")
+  comments         Comments[]
 
   @@map("users")
 }
@@ -86,6 +88,7 @@ model Boards {
 
   columns Columns[]
   members BoardMembers[]
+  labels  Labels[]
 
   @@map("boards")
 }
@@ -106,16 +109,61 @@ model Columns {
 }
 
 model Cards {
-  id         String   @id @default(uuid()) @db.Uuid
-  title      String
-  order      Int      @default(0)
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  id          String    @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  dueDate     DateTime? @map("due_date")
+  order       Int       @default(0)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
 
   columnId String  @map("column_id") @db.Uuid
   column   Columns @relation(fields: [columnId], references: [id], onDelete: Cascade)
 
+  assignedToId String? @map("assigned_to_id") @db.Uuid
+  assignedTo   Users?  @relation("assignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  comments Comments[]
+  labels   CardLabels[]
+
   @@map("cards")
+}
+
+model Comments {
+  id         String   @id @default(uuid()) @db.Uuid
+  text       String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  userId String @map("user_id") @db.Uuid
+  user   Users  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  cardId String @map("card_id") @db.Uuid
+  card   Cards  @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Labels {
+  id      String @id @default(uuid()) @db.Uuid
+  title   String
+  color   String
+  boardId String @map("board_id") @db.Uuid
+  board   Boards @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  cards CardLabels[]
+
+  @@map("labels")
+}
+
+model CardLabels {
+  cardId  String @map("card_id") @db.Uuid
+  card    Cards  @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  labelId String @map("label_id") @db.Uuid
+  label   Labels @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, labelId])
+  @@map("card_labels")
 }
 
 enum Roles {
