@@ -49,22 +49,18 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = result.data;
     const user = await prisma.users.findUnique({ where: { email } });
     if (!user) {
-      return res
-        .status(401)
-        .json({ message: "Пользователь с данным email не найден" });
+      return res.status(401).json({ message: "Неверный email или пароль" });
     }
     const isCompared = await bcrypt.compare(password, user.passwordHash);
     if (!isCompared) {
-      return res
-        .status(401)
-        .json({ message: "Пользователь с данным паролем не найден" });
+      return res.status(401).json({ message: "Неверный email или пароль" });
     }
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
-    res.status(201).json({
+    res.status(200).json({
       token,
       user: {
         id: user.id,
@@ -74,6 +70,29 @@ export const login = async (req: Request, res: Response) => {
         role: user.role,
       },
     });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Ошибка сервера" });
+  }
+};
+
+export const me = async (req: Request, res: Response) => {
+  try {
+    const user = await prisma.users.findUnique({
+      where: { id: req.user!.id },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+        role: true,
+        avatar: true,
+        created_at: true,
+      },
+    });
+    if (!user) {
+      return res.status(404).json({ message: "Пользователь не найден" });
+    }
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Ошибка сервера" });
