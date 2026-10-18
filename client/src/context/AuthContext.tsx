@@ -28,20 +28,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) {
-      setUser(null);
+    const storedToken = localStorage.getItem("token");
+    if (!storedToken) {
       setIsLoading(false);
       return;
     }
 
     fetch("/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${storedToken}` },
     })
       .then((res) => {
         if (!res.ok) throw new Error();
         return res.json();
       })
-      .then((user) => setUser(user))
+      .then((data) => setUser(data.user))
       .catch(() => {
         setUser(null);
         setToken(null);
@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (newToken: string, newUser: UserI) => {
     setToken(newToken);
     setUser(newUser);
+    setIsLoading(false);
     localStorage.setItem("token", newToken);
   };
 
