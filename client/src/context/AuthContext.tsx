@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!res.ok) throw new Error();
         return res.json();
       })
-      .then((data) => setUser(data.user))
+      .then((data) => setUser(data))
       .catch(() => {
         setUser(null);
         setToken(null);
@@ -53,7 +53,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (newToken: string, newUser: UserI) => {
     setToken(newToken);
     setUser(newUser);
-    setIsLoading(false);
     localStorage.setItem("token", newToken);
   };
 
@@ -62,10 +61,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("token");
   };
-
-  if (isLoading) {
-    return <div>Загрузка...</div>;
-  }
 
   return (
     <AuthContext.Provider
